@@ -1,5 +1,6 @@
 mod environment;
 mod error;
+mod runtime;
 #[macro_use]
 mod expression;
 mod lexer;
@@ -10,28 +11,22 @@ pub use error::{Error, Result};
 pub use expression::Expression;
 pub use lexer::Lexer;
 pub use parser::Parser;
+pub use runtime::Runtime;
 
 #[cfg(test)]
 mod tests {
-    use super::{Expression, Lexer, Parser, Result};
-
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
+    use super::{Expression, Result, Runtime};
 
     #[test]
     fn parse() -> Result<()> {
-        let lexer = Lexer::default();
-        let parser = Parser::default();
+        let runtime = Runtime::default();
 
-        let test_data = "(2 2 +)";
-        let tokens = lexer.tokenize(test_data);
-        let _exprs = parser.parse(&tokens)?;
+        let data = "(+ 2 2)";
+        // let expression = runtime.parse(data)?;
+        // let result = runtime.evaluate(&expression.0)?;
 
+        // println!("Result: {result}");
         println!("{:?}", list!(num!(2), num!(2), sym!("+")));
-        // assert_eq!(exprs.0, list!(vec![num!(2), num!(2), sym!("+")]));
 
         Ok(())
     }

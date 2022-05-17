@@ -1,26 +1,59 @@
 use crate::Result;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expression {
     Symbol(String),
     Number(f64),
-    List(Vec<Expression>),
+    List(List),
     Function(Function),
 }
 
+impl Display for Expression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let message: String = match self {
+            Self::Symbol(symbol) => symbol.clone(),
+            Self::Number(number) => number.to_string(),
+            Self::List(list) => list
+                .iter()
+                .fold("".to_owned(), |acc, expr| format!("{acc} {expr}"))
+                .trim()
+                .to_owned(),
+            Self::Function(function) => format!("{function}"),
+        };
+
+        write!(f, "{message}")
+    }
+}
+
+pub type List = Vec<Expression>;
+
 // TODO: impl PartialEq
-pub struct Function(fn(&[Expression]) -> Result<Expression>);
+#[derive(Clone)]
+pub struct Function {
+    identifier: String,
+    inner: fn(List) -> Result<Expression>,
+}
 
 impl Function {
-    pub fn new(f: fn(&[Expression]) -> Result<Expression>) -> Self {
-        Self(f)
+    pub fn new(identifier: String, inner: fn(List) -> Result<Expression>) -> Self {
+        Self { identifier, inner }
+    }
+
+    pub fn call(&self, args: List) -> Result<Expression> {
+        (self.inner)(args)
     }
 }
 
 impl Debug for Function {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Function").finish()
+        write!(f, "Function({})", self.identifier)
+    }
+}
+
+impl Display for Function {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Function({})", self.identifier)
     }
 }
 
@@ -47,7 +80,7 @@ macro_rules! list {
 
 #[macro_export]
 macro_rules! func {
-    ($f:expr) => {
-        Expression::Function(crate::expression::Function::new($f))
+    ($ident:expr, $f:expr) => {
+        Expression::Function(crate::expression::Function::new($ident.to_owned(), $f))
     };
 }

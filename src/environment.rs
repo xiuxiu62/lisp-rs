@@ -1,62 +1,71 @@
-use crate::{func, Error, Expression, Result};
+use crate::{expression::List, func, Error, Expression, Result};
 use std::collections::HashMap;
+use tracing::info;
 
-pub struct Environment<'a> {
-    data: HashMap<&'a str, Expression>,
+pub struct Environment {
+    data: HashMap<String, Expression>,
 }
 
-impl<'a> Environment<'a> {
+impl Environment {
     pub fn new() -> Self {
         Self {
             data: HashMap::new(),
         }
     }
+
+    pub fn get(&self, indentifier: &str) -> Option<&Expression> {
+        self.data.get(indentifier)
+    }
+
+    // Returns the old value when updating an existing expression
+    pub fn set(&mut self, identifier: &str, expression: Expression) -> Option<Expression> {
+        self.data.insert(identifier.to_owned(), expression)
+    }
 }
 
-impl<'a> Default for Environment<'a> {
+impl Default for Environment {
     fn default() -> Self {
-        let addition = func!(|args: &[Expression]| -> Result<Expression> {
-            let sum = parse_floats(args)?.iter().fold(0.0, |sum, a| sum + a);
-
-            Ok(Expression::Number(sum))
+        info!("adding: addition");
+        let addition = func!("+", |args: List| -> Result<Expression> {
+            Ok(Expression::Number(
+                parse_floats(args)?.iter().fold(0.0, |sum, a| sum + a),
+            ))
         });
 
-        let subtraction = func!(|args: &[Expression]| -> Result<Expression> {
+        info!("adding: subtraction");
+        let subtraction = func!("-", |args: List| -> Result<Expression> {
             let floats = parse_floats(args)?;
             let first = *floats
                 .first()
-                .ok_or(Error::Parse("expected at least one number".to_owned()))?;
+                .ok_or_else(|| Error::Parse("expected at least one number".to_owned()))?;
             let sum_of_rest = floats[1..].iter().fold(0.0, |sum, a| sum + a);
 
             Ok(Expression::Number(first - sum_of_rest))
         });
 
-        EnvironmentBuilder::new()
-            .func("+", addition)
-            .func("-", subtraction)
-            .build()
+        let mut environment = Self::new();
+        environment.data.insert("+".to_owned(), addition);
+        environment.data.insert("-".to_owned(), subtraction);
+        environment
     }
 }
 
-pub struct EnvironmentBuilder<'a>(Environment<'a>);
+#[derive(Default)]
+pub struct EnvironmentBuilder(Environment);
 
-impl<'a> EnvironmentBuilder<'a> {
-    pub fn new() -> Self {
-        Self(Environment::new())
-    }
-
-    pub fn func(mut self, ident: &'a str, f: Expression) -> Self {
-        self.0.data.insert(ident, f);
+impl EnvironmentBuilder {
+    pub fn set(mut self, identifier: &str, expression: Expression) -> Self {
+        self.0.data.insert(identifier.to_owned(), expression);
         self
     }
 
-    pub fn build(self) -> Environment<'a> {
+    pub fn build(self) -> Environment {
         self.0
     }
 }
 
-fn parse_floats(args: &[Expression]) -> Result<Vec<f64>> {
-    args.iter().map(|n| parse_float(n)).collect()
+fn parse_floats(args: List) -> Result<Vec<f64>> {
+    args.iter().map(parse_float).collect()
 }
 
 fn parse_float(expr: &Expression) -> Result<f64> {
