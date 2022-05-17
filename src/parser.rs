@@ -45,6 +45,13 @@ impl Parser {
     }
 
     fn parse_atom(&self, token: &str) -> Expression {
+        if token == "true" {
+            return Expression::Bool(true);
+        };
+        if token == "false" {
+            return Expression::Bool(false);
+        };
+
         let potential_float: std::result::Result<f64, ParseFloatError> = token.parse();
         match potential_float {
             Ok(v) => Expression::Number(v),

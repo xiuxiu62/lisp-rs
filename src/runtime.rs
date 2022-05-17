@@ -21,7 +21,7 @@ impl<'a> Runtime {
 
         match expression {
             Expression::Symbol(identifier) => self.evaluate_symbol(identifier),
-            Expression::Number(_) => Ok(expression.clone()),
+            Expression::Number(_) | Expression::Bool(_) => Ok(expression.clone()),
             Expression::List(list) => self.evaluate_list(list),
             Expression::Function(_) => Err(Error::Evaluation("unexpected form".to_owned())),
         }

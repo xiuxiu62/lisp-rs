@@ -3,16 +3,18 @@ use std::fmt::{Debug, Display};
 
 #[derive(Debug, Clone)]
 pub enum Expression {
-    Symbol(String),
-    Number(f64),
-    List(List),
+    Bool(bool),
     Function(Function),
+    List(List),
+    Number(f64),
+    Symbol(String),
 }
 
 impl Display for Expression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let message: String = match self {
             Self::Symbol(symbol) => symbol.clone(),
+            Self::Bool(bool) => bool.to_string(),
             Self::Number(number) => number.to_string(),
             Self::List(list) => list
                 .iter()
