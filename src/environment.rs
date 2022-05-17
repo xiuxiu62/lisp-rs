@@ -1,6 +1,6 @@
 use crate::{expression::List, func, Error, Expression, Result};
 use std::collections::HashMap;
-use tracing::info;
+use tracing::debug;
 
 pub struct Environment {
     data: HashMap<String, Expression>,
@@ -25,14 +25,14 @@ impl Environment {
 
 impl Default for Environment {
     fn default() -> Self {
-        info!("adding: addition");
+        debug!("adding: addition");
         let addition = func!("+", |args: List| -> Result<Expression> {
             Ok(Expression::Number(
                 parse_floats(args)?.iter().fold(0.0, |sum, a| sum + a),
             ))
         });
 
-        info!("adding: subtraction");
+        debug!("adding: subtraction");
         let subtraction = func!("-", |args: List| -> Result<Expression> {
             let floats = parse_floats(args)?;
             let first = *floats

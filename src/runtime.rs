@@ -1,4 +1,4 @@
-use tracing::info;
+use tracing::debug;
 
 use crate::{expression::List, Environment, Error, Expression, Parser, Result};
 
@@ -17,7 +17,8 @@ impl<'a> Runtime {
     }
 
     pub fn evaluate(&'a self, expression: &'a Expression) -> Result<Expression> {
-        info!("evaluating: {expression}");
+        debug!("evaluation: {expression}");
+
         match expression {
             Expression::Symbol(identifier) => self.evaluate_symbol(identifier),
             Expression::Number(_) => Ok(expression.clone()),
@@ -31,7 +32,6 @@ impl<'a> Runtime {
     }
 
     fn evaluate_symbol(&'a self, identifier: &str) -> Result<Expression> {
-        info!("evaluating symbol");
         self.environment
             .get(identifier)
             .ok_or_else(|| Error::Evaluation(format!("unexpected symbol {identifier}")))
@@ -39,7 +39,6 @@ impl<'a> Runtime {
     }
 
     fn evaluate_list(&'a self, list: &'a List) -> Result<Expression> {
-        info!("evaluating list");
         let first = list
             .first()
             .ok_or_else(|| Error::Evaluation("expected a non-empty list".to_owned()))?;

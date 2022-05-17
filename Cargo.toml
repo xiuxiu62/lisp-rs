@@ -12,5 +12,6 @@ name = "lisp"
 path = "src/bin/main.rs"
 
 [dependencies]
+reedline = "0.5.0"
 tracing = "0.1"
 tracing-subscriber = "0.2"

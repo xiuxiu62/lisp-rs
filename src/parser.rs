@@ -1,20 +1,19 @@
-use tracing::info;
-
 use crate::{Error, Expression, Lexer, Result};
 use std::num::ParseFloatError;
+use tracing::debug;
 
 #[derive(Debug, Default)]
 pub struct Parser(Lexer);
 
-impl<'a> Parser {
+impl Parser {
     pub fn parse(&self, expression: &str) -> Result<(Expression, Vec<String>)> {
-        info!("parsing: {expression}");
+        debug!("parsing: {expression}");
 
         let tokens = self.tokenize(expression);
         self.parse_tokens(tokens)
     }
 
-    fn parse_tokens(&'a self, tokens: Vec<String>) -> Result<(Expression, Vec<String>)> {
+    fn parse_tokens(&self, tokens: Vec<String>) -> Result<(Expression, Vec<String>)> {
         let (token, rest) = tokens
             .split_first()
             .ok_or_else(|| Error::Parse("could not get token".to_owned()))?;
@@ -26,7 +25,7 @@ impl<'a> Parser {
         }
     }
 
-    fn read_seq(&'a self, tokens: Vec<String>) -> Result<(Expression, Vec<String>)> {
+    fn read_seq(&self, tokens: Vec<String>) -> Result<(Expression, Vec<String>)> {
         let mut res: Vec<Expression> = vec![];
         let mut xs = tokens;
 
