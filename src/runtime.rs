@@ -11,7 +11,7 @@ pub struct Runtime {
 impl<'a> Runtime {
     pub fn new(environment: Environment) -> Self {
         Self {
-            environment: environment,
+            environment,
             parser: Parser::default(),
         }
     }

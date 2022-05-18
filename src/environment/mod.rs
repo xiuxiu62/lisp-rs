@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use tracing::debug;
 
 mod builder;
-mod util;
+pub mod util;
 
 pub use builder::EnvironmentBuilder;
 
@@ -34,7 +34,7 @@ impl Default for Environment {
 
         macro_rules! local_env_add {
             ($ident:expr, $f:expr) => {
-                crate::env_add!(environment, ($ident, $f));
+                crate::env_add!(environment, ($ident, $f))
             };
         }
 
@@ -76,6 +76,16 @@ impl Default for Environment {
             ))
         });
 
+        local_env_add!("=", ensure_tonicity!(|a, b| a == b));
+        local_env_add!(">", ensure_tonicity!(|a, b| a > b));
+        local_env_add!(">=", ensure_tonicity!(|a, b| a >= b));
+        local_env_add!("<", ensure_tonicity!(|a, b| a < b));
+        local_env_add!("<=", ensure_tonicity!(|a, b| a <= b));
+
+        // local_env_add!("define", |args: List| ->Result<Expression> {
+
+        // })
+
         environment
     }
 }
@@ -88,3 +98,26 @@ macro_rules! env_add {
         $env.data.insert($ident.to_owned(), function);
     };
 }
+
+macro_rules! ensure_tonicity {
+    ($check_fn:expr) => {{
+        |args: List| -> Result<Expression> {
+            let floats = util::parse_floats(args)?;
+            let first = floats.first().ok_or(Error::Evaluation(
+                "expected at least one number".to_string(),
+            ))?;
+
+            let rest = &floats[1..];
+            fn f(prev: &f64, xs: &[f64]) -> bool {
+                match xs.first() {
+                    Some(x) => $check_fn(prev, x) && f(x, &xs[1..]),
+                    None => true,
+                }
+            }
+
+            Ok(Expression::Bool(f(first, rest)))
+        }
+    }};
+}
+
+pub(crate) use ensure_tonicity;

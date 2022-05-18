@@ -41,7 +41,7 @@ impl Repl {
     }
 
     fn evaluate_buffer(&self, buffer: &str) -> lib_lisp::Result<String> {
-        let expression = self.runtime.parse(&buffer)?;
+        let expression = self.runtime.parse(buffer)?;
         let result = self.runtime.evaluate(&expression.0)?;
 
         Ok(format!("{result}"))
