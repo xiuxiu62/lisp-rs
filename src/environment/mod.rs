@@ -103,9 +103,9 @@ macro_rules! ensure_tonicity {
     ($check_fn:expr) => {{
         |args: List| -> Result<Expression> {
             let floats = util::parse_floats(args)?;
-            let first = floats.first().ok_or(Error::Evaluation(
-                "expected at least one number".to_string(),
-            ))?;
+            let first = floats
+                .first()
+                .ok_or(Error::Evaluation("expected at least one number".to_owned()))?;
 
             let rest = &floats[1..];
             fn f(prev: &f64, xs: &[f64]) -> bool {

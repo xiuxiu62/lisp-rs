@@ -77,17 +77,16 @@ impl<'a> Runtime {
     fn evaluate_if(&mut self, args: &[Expression]) -> Result<Expression> {
         let test_form = args
             .first()
-            .ok_or(Error::Evaluation("expected test form".to_owned()))?;
+            .ok_or_else(|| Error::Evaluation("expected test form".to_owned()))?;
         let test_eval = self.evaluate(test_form)?;
         match test_eval {
             Expression::Bool(b) => {
                 let form_idx = if b { 1 } else { 2 };
                 let res_form = args
                     .get(form_idx)
-                    .ok_or(Error::Evaluation(format!("expected form idx={}", form_idx)))?;
-                let res_eval = self.evaluate(res_form);
+                    .ok_or_else(|| Error::Evaluation(format!("expected form idx={}", form_idx)))?;
 
-                res_eval
+                self.evaluate(res_form)
             }
             _ => Err(Error::Evaluation(format!(
                 "unexpected test form='{}'",
@@ -99,20 +98,18 @@ impl<'a> Runtime {
     fn evaluate_define(&mut self, args: &[Expression]) -> Result<Expression> {
         let first_form = args
             .first()
-            .ok_or(Error::Evaluation("expected first form".to_string()))?;
+            .ok_or_else(|| Error::Evaluation("expected first form".to_owned()))?;
         let first_str = match first_form {
             Expression::Symbol(s) => Ok(s.clone()),
             _ => Err(Error::Evaluation(
-                "expected first form to be a symbol".to_string(),
+                "expected first form to be a symbol".to_owned(),
             )),
         }?;
         let second_form = args
             .get(1)
-            .ok_or(Error::Evaluation("expected second form".to_string()))?;
+            .ok_or_else(|| Error::Evaluation("expected second form".to_owned()))?;
         if args.len() > 2 {
-            return Err(Error::Evaluation(
-                "def can only have two forms ".to_string(),
-            ));
+            return Err(Error::Evaluation("def can only have two forms ".to_owned()));
         }
         let second_eval = self.evaluate(second_form)?;
         self.environment.set(&first_str, second_eval);
