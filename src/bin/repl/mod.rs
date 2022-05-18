@@ -33,14 +33,14 @@ impl Repl {
         Ok(())
     }
 
-    fn handle_buffer(&self, buffer: &str) {
+    fn handle_buffer(&mut self, buffer: &str) {
         match self.evaluate_buffer(buffer) {
             Ok(result) => println!("{result}"),
             Err(err) => println!("{err}"),
         }
     }
 
-    fn evaluate_buffer(&self, buffer: &str) -> lib_lisp::Result<String> {
+    fn evaluate_buffer(&mut self, buffer: &str) -> lib_lisp::Result<String> {
         let expression = self.runtime.parse(buffer)?;
         let result = self.runtime.evaluate(&expression.0)?;
 
